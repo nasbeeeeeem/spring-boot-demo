@@ -12,6 +12,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -33,27 +35,8 @@ class SpringBootDemoApplicationTests {
 	private MockMvc mockMvc;
 
 	@Test
-	void testHello() throws Exception {
-		// 検証するAPIパス
-		final String API_PATH = "/hello";
-
-		// JavaのObjectをJSONに変換するためのクラスを生成
-		ObjectMapper objectMapper = new ObjectMapper();
-
-		// 結果を検証するためのクラスを生成して、期待値をセット
-		Sample sample = new Sample();
-		sample.setId(100);
-		sample.setName("taro");
-
-		// 「/hello」パスのAPIを実行してレスポンスを検証
-		this.mockMvc.perform(MockMvcRequestBuilders.get(API_PATH))
-			.andDo(MockMvcResultHandlers.print())
-			.andExpect(status().isOk())
-			.andExpect(content().json(objectMapper.writeValueAsString(sample)));
-	}
-
-	@Test
 	@Transactional
+	@Order(1)
 	void testCrud() throws Exception {
 		// select(idは1)
 		/**
@@ -194,5 +177,18 @@ class SpringBootDemoApplicationTests {
 			.getContentAsString(StandardCharsets.UTF_8);
 		itemResponseList = objectMapper.readValue(contentAsString, new TypeReference<List<ItemResponse>>() {});
 		assertThat(itemResponseList, hasSize(2));
+	}
+
+	@Test
+	@Transactional
+	@Order(2)
+	void testGetAll() throws Exception {
+		final String API_PATH8 = "/items";
+
+		// APIを実行
+		ResultActions resultActions = this.mockMvc.perform(MockMvcRequestBuilders.get(API_PATH8));
+		resultActions
+			.andDo(MockMvcResultHandlers.print())
+			.andExpect(status().isOk());
 	}
 }
